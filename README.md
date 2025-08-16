@@ -16,7 +16,7 @@ Live Demo: [https://textto-sql.streamlit.app/](https://textto-sql.streamlit.app/
 
 ---
 
-## 🛠️ Tech Stack
+##  Tech Stack
 - **Frontend/UI:** [Streamlit](https://streamlit.io)
 - **LLM & Orchestration:** [LangChain](https://www.langchain.com/)
 - **LLM Provider:** Google Generative AI (Gemini)
@@ -25,7 +25,7 @@ Live Demo: [https://textto-sql.streamlit.app/](https://textto-sql.streamlit.app/
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 .
 ├── sql.py # Main Streamlit app
 ├── requirements.txt # Python dependencies
@@ -33,46 +33,16 @@ Live Demo: [https://textto-sql.streamlit.app/](https://textto-sql.streamlit.app/
 │ └── secrets.toml # Environment variables (API key, DB config)
 └── README.md # Project documentation
 
-## ⚙️ Setup & Installation
+## Setup & Installation
 
 1. **Clone the repository**
    ```bash
    git clone https://github.com/Sreenath67/text-to-sql.git
    cd text-to-sql
    
-Create and activate a virtual environment
-python -m venv venv
-source venv/bin/activate   # On Linux/Mac
-venv\Scripts\activate      # On Windows
-
-
-Install dependencies
-pip install -r requirements.txt
-Set up environment variables
-
-
-Create a .streamlit/secrets.toml file:
-GOOGLE_API_KEY = "your_google_api_key_here"
-Get your API key from: Google AI Studio
-
-▶️ Running Locally:
-streamlit run sql.py
-🌐 Deployment:
-This project is deployed for free using Streamlit Cloud.
-
-Steps to deploy:
-
-Push your code to GitHub.
-
-Go to Streamlit Cloud and create a new app.
-
-Connect your repo and select sql.py as the entry point.
-
-Add your GOOGLE_API_KEY in the Streamlit Secrets Manager under .streamlit/secrets.toml.
-
-📊 Example
+ Example
 Question:
-👉 "What are the different tables in the database?"
+ "What are the different tables in the database?"
 
 Generated SQL:
 
