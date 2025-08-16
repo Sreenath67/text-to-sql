@@ -4,42 +4,61 @@ import sqlite3
 import streamlit as st
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.chains import create_sql_query_chain
-from langchain_community.utilities import SQLDatabase
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 
 load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-flash", 
+    model="gemini-1.5-flash",
     temperature=0,
     google_api_key=GOOGLE_API_KEY
 )
 
-db = SQLDatabase.from_uri("sqlite:///shop.db")  
-sql_chain = create_sql_query_chain(llm, db)
+schema_description = """
+Database name: shop.db
+Tables:
+1. users(user_id INTEGER PRIMARY KEY, name TEXT, age INTEGER, phone_number TEXT)
+2. products(product_id INTEGER PRIMARY KEY, product_name TEXT, price REAL)
+3. orders(order_id INTEGER PRIMARY KEY, user_id INTEGER, product_id INTEGER, order_date TEXT)
 
+Relationships:
+- orders.user_id → users.user_id
+- orders.product_id → products.product_id
+"""
 
-st.set_page_config(page_title="Text to SQL with Gemini & LangChain")
+sql_prompt = PromptTemplate(
+    input_variables=["question", "schema"],
+    template="""
+You are a SQL expert. Write a valid SQLite query ONLY. 
+Use the following database schema:
+
+{schema}
+
+Question: {question}
+
+Return only the SQL query. Do not include explanations, comments, or markdown.
+"""
+)
+
+# Build the chain
+sql_chain = LLMChain(llm=llm, prompt=sql_prompt)
+
+#  Streamlit UI 
+st.set_page_config(page_title="Text to SQL with Gemini & LangChain ")
 st.title("LangChain + Gemini SQL Chatbot")
 
 question = st.text_input("Ask a question about your data:")
 
 if st.button("Generate and Run SQL"):
     try:
-        # Step 1: Generate SQL from question
-        result = sql_chain.invoke({"question": question})
+        # Generate SQL 
+        result = sql_chain.invoke({"question": question, "schema": schema_description})#dict
+        generated_sql = result["text"]   # extract the actual SQL string
 
-        # Extract SQL from LangChain output
-        if isinstance(result, dict) and "query" in result:
-            generated_sql = result["query"]
-        else:
-            generated_sql = str(result)
-
-        # Step 2: Clean the SQL
-        # Remove markdown code fences ```sql ... ```
+        # Clean SQL
         generated_sql = re.sub(r"```sql|```", "", generated_sql, flags=re.IGNORECASE).strip()
-        # Remove any accidental "Question:" or explanation text
         if "SELECT" in generated_sql.upper():
             generated_sql = generated_sql[generated_sql.upper().find("SELECT"):]
         elif "PRAGMA" in generated_sql.upper():
@@ -51,16 +70,18 @@ if st.button("Generate and Run SQL"):
         elif "DELETE" in generated_sql.upper():
             generated_sql = generated_sql[generated_sql.upper().find("DELETE"):]
 
+        # Show generated query
         st.subheader("Generated SQL:")
         st.code(generated_sql, language="sql")
 
+        # Run query
         conn = sqlite3.connect("shop.db")
         cursor = conn.cursor()
         cursor.execute(generated_sql)
         rows = cursor.fetchall()
         conn.close()
 
-        # Step 4: Display results
+        # Display results
         st.subheader("Query Results:")
         if rows:
             st.dataframe(rows)
