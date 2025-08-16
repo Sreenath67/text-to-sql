@@ -13,7 +13,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 llm = ChatGoogleGenerativeAI(
     model="gemini-1.5-flash",
     temperature=0,
-    google_api_key=GOOGLE_API_KEY
+    google_api_key=st.secrets["GOOGLE_API_KEY"]
 )
 
 schema_description = """
